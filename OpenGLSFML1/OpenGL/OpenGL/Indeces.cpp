@@ -7,11 +7,14 @@
 #include<gl/glm/glm.hpp>
 #include<gl/glm/gtc/matrix_transform.hpp>
 #include<gl/glm/gtc/type_ptr.hpp>
+#include "Indeces.h"
 
 using namespace std;
 
 //Using the prototype of InitShader function from shaderFunction.cpp file.
 GLuint InitShader(const char* vertex_shader_file_name, const char* fragment_shader_file_name); //Gluint stands for (unsigned int)
+//A prototype for the function SetUniformMatrix
+void SetUniformMarix(glm::mat4& _model, GLuint _shaderId, const GLchar* name);
 
 GLuint shaderId;
 GLuint VBO, VAO, EBO;
@@ -86,20 +89,17 @@ void Render()
 	model = glm::translate(model, glm::vec3(offsetX, offsetY, 0));
 	model = glm::rotate(model, 45.0f, glm::vec3(0, 0, 1));
 	model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-	int uniformId_Action = glGetUniformLocation(shaderId, "model");
-	glUniformMatrix4fv(uniformId_Action, 1, GL_FALSE, glm::value_ptr(model));
+	SetUniformMarix(model, shaderId, "model");
 
 	//View Matrix
 	glm::mat4 view = glm::mat4(1.0f);
 	view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	int uniformId_View = glGetUniformLocation(shaderId, "view");
-	glUniformMatrix4fv(uniformId_View, 1, GL_FALSE, glm::value_ptr(view));
+	SetUniformMarix(view, shaderId, "view");
 
 	//Space Matrix
 	glm::mat4 projection = glm::mat4::tmat4x4(1.0f);
 	projection = glm::perspective(45.0f, (float)WIDTH / (float)HEIGHT, 0.01f, 100.0f);
-	int uniformId_Projection = glGetUniformLocation(shaderId, "projection");
-	glUniformMatrix4fv(uniformId_Projection, 1, GL_FALSE, glm::value_ptr(projection));
+	SetUniformMarix(projection, shaderId, "projection");
 
 
 	glBindVertexArray(VAO);
@@ -107,6 +107,12 @@ void Render()
 #pragma endregion
 
 	glUseProgram(shaderId);
+}
+
+void SetUniformMarix(glm::mat4& _model, GLuint _shaderId, const GLchar *name)
+{
+	int uniformId = glGetUniformLocation(_shaderId, name);
+	glUniformMatrix4fv(uniformId, 1, GL_FALSE, glm::value_ptr(_model));
 }
 
 int main()
