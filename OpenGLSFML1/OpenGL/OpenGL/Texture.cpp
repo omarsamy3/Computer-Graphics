@@ -22,6 +22,7 @@ void PrepareBuffers(float  vertices[], int  indices[], float sizeVertices, float
 GLuint shaderId;
 GLuint VBO, VAO, EBO;
 float offsetX, offsetY;
+GLuint TextureId;
 
 const GLint WIDTH = 600, HEIGHT = 600;
 
@@ -90,8 +91,8 @@ void Render()
 	//Actions on the model.
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(offsetX, offsetY, 0));
-	model = glm::rotate(model, 0.0f, glm::vec3(1, 0, 0));
-	model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+	model = glm::rotate(model, 90.0f, glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 	SetUniformMarix(model, shaderId, "model");
 
 	//View Matrix
@@ -103,12 +104,19 @@ void Render()
 	glm::mat4 projection = glm::mat4::tmat4x4(1.0f);
 	projection = glm::perspective(45.0f, (float)WIDTH / (float)HEIGHT, 0.01f, 100.0f);
 	SetUniformMarix(projection, shaderId, "projection");
+#pragma endregion
+
+#pragma region Texture_Binding
+	//To search in the fragmentshader about uniform sampler2D.
+	glBindTexture(GL_TEXTURE_2D, TextureId);
+#pragma endregion
+
+
+
 
 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-#pragma endregion
-
 	glUseProgram(shaderId);
 }
 
@@ -126,10 +134,11 @@ int main()
 
 	//create an array of vertices.
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f  ,    0.2, 0, 1, 0, 0, 0, 	//1st point
-		0.5f, -0.5f,  0.0f  ,    0.2, 1, 1, 0, 0, 1,	    //2nd point
-		0.5f,  0.5f,  0.0f  ,    0.8, 0, 0, 0,  1, 1,	//3rd point
-		-0.5,  0.5,   0.0f  ,    0.1, 1, 1, 0,	1, 0	//4th point
+		//Position				//Colors		 //UV Space
+		-0.5f, -0.5f, 0.0f  ,    0.2, 0, 1, 0,    0, 0,			//1st point
+		0.5f, -0.5f,  0.0f  ,    0.2, 1, 1, 0,    0, 2,			//2nd point
+		0.5f,  0.5f,  0.0f  ,    0.8, 0, 0, 0,    2, 2,			//3rd point
+		-0.5,  0.5,   0.0f  ,    0.1, 1, 1, 0,    2, 0			//4th point
 	};
 	int indices[] = {
 		0, 1, 2,		//1st triangle
@@ -142,6 +151,39 @@ int main()
 
 	PrepareBuffers(vertices, indices, sizeof(vertices), sizeof(indices));
 #pragma endregion
+
+#pragma region Texture
+	//Binding the texture.
+	glGenTextures(1, &TextureId);
+	glBindTexture(GL_TEXTURE_2D, TextureId);
+
+	//Import the image.
+	sf::Image img_data;
+	if (!img_data.loadFromFile("smile.jpg"))
+	{
+		return 0;
+	}
+
+	//To send the photo to openGL and bind it.
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x,
+		img_data.getSize().y, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE,
+		img_data.getPixelsPtr());
+
+	//This method to define the kind of the texture(CLAMP or REPEAT).
+	//Set the texture wrapping parameters.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//This method to define the kind of the texture(Nearest or Linear).
+	//Set texture filtering parameters.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//To enable the Mipmap featrue which choose a suitable size for the texture.
+	glGenerateMipmap(GL_TEXTURE_2D);
+#pragma endregion
+
 
 	while (window.isOpen())
 	{
