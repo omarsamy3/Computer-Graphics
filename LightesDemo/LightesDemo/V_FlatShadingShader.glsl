@@ -17,8 +17,8 @@ float kd = 0.8;
 float ks = 20;
 float sh = 10;
 
-vec3 camera_position = vec3(0,0,3);
-vec3 light_distance = vec3(1,1,1);
+vec3 camera_position = vec3(0,0,5);
+vec3 light_distance = vec3(1,1,1); //The light is far by 1.0 as I make normalization.
 
 vec4 Slight_color = vec4(1,1,1,1);
 vec4 Dlight_color = vec4(1,1,1,1);

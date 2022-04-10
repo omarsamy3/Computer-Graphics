@@ -46,9 +46,9 @@ vec3 Sphere_Core_vertices[4] = {
 void Triangle(vec3 a, vec3 b, vec3 c)
 {
 	vec3 normal = (a + b + c) / 3.0f;
-	sphere_vertices.push_back(vertex(a, a)); //position and normal = a
-	sphere_vertices.push_back(vertex(b, b)); //position and normal = b
-	sphere_vertices.push_back(vertex(c, c)); //position and normal = c
+	sphere_vertices.push_back(vertex(a, normal)); 
+	sphere_vertices.push_back(vertex(b, normal)); 
+	sphere_vertices.push_back(vertex(c, normal)); 
 }
 //This function is to divide the triangle with the number of (iteration - 1).
 void dividTriangle(vec3 a, vec3 b, vec3 c, int iterations)
@@ -155,7 +155,7 @@ int Init()
 	projMatLoc = glGetUniformLocation(baseShaderProgramId, "projMat");
 
 	//LookAt function is to set the position and the direction of the camera.
-	mat4 viewMat = lookAt(vec3(0, 0, 3), vec3(0, 0, 0), vec3(0, 1, 0));
+	mat4 viewMat = lookAt(vec3(0, 0, 5), vec3(0, 0, 0), vec3(0, 1, 0));
 	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, value_ptr(viewMat));
 
 	mat4 projMat = perspectiveFov(60.0f, 5.0f, 5.0f, 1.0f, 10.0f);
