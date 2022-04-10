@@ -33,7 +33,7 @@ mat4 ModelMat;
 #pragma Region Sphere
 vector<vertex> sphere_vertices;
 
-
+//These vertices are for drawing simple sphere.     
 vec3 Sphere_Core_vertices[4] = {
 	vec3(0.0, 0.0, 1.0),
 	vec3(0.0, 0.942809, -0.333333),
@@ -154,7 +154,7 @@ int Init()
 	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE, value_ptr(projMat));
 
 	glClearColor(0, 0, 0, 1);
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST); //To enable depth buffer to test the values of z-indices to keep them updated.
 
 	return 0;
 }
@@ -167,7 +167,7 @@ void Update()
 
 void Render()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //To clear the color buffer and the depth buffer after rendering.
 	//glUseProgram(baseShaderProgramId);
 	//BindSphere();
 
@@ -181,9 +181,10 @@ void Render()
 
 int main()
 {
+	//Give size to depth buffer.
 	sf::ContextSettings context;
-	context.depthBits = 24;
-	sf::Window window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Close, context);
+	context.depthBits = 24; //give the depthbits a size of 24.
+	sf::Window window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Close, context); //give the window the context updated.
 
 	if (Init()) return 1;
 
