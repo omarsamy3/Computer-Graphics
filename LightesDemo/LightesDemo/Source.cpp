@@ -11,10 +11,12 @@
 using namespace std;
 using namespace glm;
 
+//This struct to include the used vertices
 struct vertex
 {
-	vec3 position;
-	vec3 normal;
+	vec3 position; 
+	vec3 normal;   
+	//Different 3 types of constructor.
 	vertex() {}
 	vertex(vec3 _position, vec3 _normal) :position{ _position }, normal{ _normal }
 	{
@@ -31,9 +33,9 @@ GLuint InitShader(const char* vertex_shader_file_name, const char* fragment_shad
 mat4 ModelMat;
 
 #pragma Region Sphere
-vector<vertex> sphere_vertices;
+vector<vertex> sphere_vertices; //Sphere_vertices is a vector of type vertex which is a struct has vec3 position and normal.
 
-//These vertices are for drawing simple sphere.     
+//These vertices are for drawing a simple sphere.     
 vec3 Sphere_Core_vertices[4] = {
 	vec3(0.0, 0.0, 1.0),
 	vec3(0.0, 0.942809, -0.333333),
@@ -44,47 +46,49 @@ vec3 Sphere_Core_vertices[4] = {
 void Triangle(vec3 a, vec3 b, vec3 c)
 {
 	vec3 normal = (a + b + c) / 3.0f;
-	sphere_vertices.push_back(vertex(a, a));
-	sphere_vertices.push_back(vertex(b, b));
-	sphere_vertices.push_back(vertex(c, c));
+	sphere_vertices.push_back(vertex(a, a)); //position and normal = a
+	sphere_vertices.push_back(vertex(b, b)); //position and normal = b
+	sphere_vertices.push_back(vertex(c, c)); //position and normal = c
 }
-void dividTriangle(vec3 a, vec3 b, vec3 c, int itertions)
+//This function is to divide the triangle with the number of (iteration - 1).
+void dividTriangle(vec3 a, vec3 b, vec3 c, int iterations)
 {
-	if (itertions > 0)
+	if (iterations > 0)
 	{
 		vec3 v1 = normalize(a + b);
 		vec3 v2 = normalize(a + c);
 		vec3 v3 = normalize(b + c);
 
-		dividTriangle(a, v1, v2, itertions - 1);
-		dividTriangle(v1, b, v3, itertions - 1);
-		dividTriangle(v1, v3, v2, itertions - 1);
-		dividTriangle(v2, v3, c, itertions - 1);
+		dividTriangle(a , v1, v2, iterations - 1);
+		dividTriangle(v1, b , v3, iterations - 1);
+		dividTriangle(v1, v3, v2, iterations - 1);
+		dividTriangle(v2, v3, c , iterations - 1);
 	}
 	else
 	{
-		Triangle(a, b, c);
+		Triangle(a, b, c); 
 	}
 }
 void CreateSphere(int iterations)
 {
-	sphere_vertices.clear();
-	dividTriangle(Sphere_Core_vertices[0], Sphere_Core_vertices[1], Sphere_Core_vertices[2], iterations);
-	dividTriangle(Sphere_Core_vertices[0], Sphere_Core_vertices[3], Sphere_Core_vertices[1], iterations);
-	dividTriangle(Sphere_Core_vertices[0], Sphere_Core_vertices[2], Sphere_Core_vertices[3], iterations);
-	dividTriangle(Sphere_Core_vertices[3], Sphere_Core_vertices[2], Sphere_Core_vertices[1], iterations);
+	sphere_vertices.clear();//This is to clear the vertices if the function is called in the main wrongly.
+	//Divide the sphere which has four faces by calling the dividTriangle. This is in CPU.
+	dividTriangle(Sphere_Core_vertices[0], Sphere_Core_vertices[1], Sphere_Core_vertices[2], iterations); //Divide the Face 1 of the sphere.
+	dividTriangle(Sphere_Core_vertices[0], Sphere_Core_vertices[3], Sphere_Core_vertices[1], iterations); //Divide the Face 2 of the sphere.
+	dividTriangle(Sphere_Core_vertices[0], Sphere_Core_vertices[2], Sphere_Core_vertices[3], iterations); //Divide the Face 3 of the sphere.
+	dividTriangle(Sphere_Core_vertices[3], Sphere_Core_vertices[2], Sphere_Core_vertices[1], iterations); //Divide the Face 4 of the sphere.
 
-
+	//Book a buffer like a room, determine the owner and assign the data. This is to deal with GPU.
 	glGenBuffers(1, &Sphere_VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, Sphere_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sphere_vertices.size() * sizeof(vertex), sphere_vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sphere_vertices.size() * sizeof(vertex), sphere_vertices.data(), GL_STATIC_DRAW); 
+	//Static that I'll not change the data, but the dynamic will be changed in the run time.
 
 	/*
 	x,y,z,r,g,b,
 	x,y,z,r,g,b,
 	x,y,z,r,g,b,
 	*/
-
 	/*
 	x,y,z,
 	x,y,z,
@@ -94,6 +98,7 @@ void CreateSphere(int iterations)
 	r,g,b,
 	*/
 
+	//How it will deal with data.
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(vertex), 0);
 	glEnableVertexAttribArray(0);
 
@@ -102,7 +107,7 @@ void CreateSphere(int iterations)
 }
 void BindSphere()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, Sphere_VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, Sphere_VBO);//Sphere_VBO is a buffer in CPU has the sphere data.
 	
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
@@ -112,12 +117,13 @@ void BindSphere()
 }
 #pragma endregion 
 
-void CompileShader()
+void CompileShader() //Compile shaders and will be called in init function.
 {
 	baseShaderProgramId = InitShader("V_BasicShader.glsl", "F_BasicShader.glsl");
 	flatShadingProgramId = InitShader("V_FlatShadingShader.glsl", "F_FlatShadingShader.glsl");
 	phongProgramId = InitShader("V_phong.glsl", "F_phong.glsl");
-	glUseProgram(phongProgramId);
+
+	glUseProgram(phongProgramId); // choose which shader program will be compiled
 }
 
 int Init()
@@ -134,26 +140,28 @@ int Init()
 		if (GLEW_VERSION_3_0)
 			cout << "Driver support OpenGL 3.0\nDetails:\n";
 	}
-	cout << "\tUsing glew " << glewGetString(GLEW_VERSION) << endl;
-	cout << "\tVendor: " << glGetString(GL_VENDOR) << endl;
-	cout << "\tRenderer: " << glGetString(GL_RENDERER) << endl;
-	cout << "\tVersion: " << glGetString(GL_VERSION) << endl;
-	cout << "\tGLSL:" << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+	cout << "\t Using glew " << glewGetString(GLEW_VERSION) << endl;
+	cout << "\t Vendor: " << glGetString(GL_VENDOR) << endl;
+	cout << "\t Renderer: " << glGetString(GL_RENDERER) << endl;
+	cout << "\t Version: " << glGetString(GL_VERSION) << endl;
+	cout << "\t GLSL:" << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 
-	CompileShader();
-	CreateSphere(4);
+	CompileShader(); //Pull the shader files data to compile.
+	CreateSphere(5); //Create the sphere with the number of iteration you need.
 
+	//This way is to get the location of the uniform vectors unlike the modern way using layout.
 	modelMatLoc = glGetUniformLocation(baseShaderProgramId, "modelMat");
 	viewMatLoc = glGetUniformLocation(baseShaderProgramId, "viewMat");
 	projMatLoc = glGetUniformLocation(baseShaderProgramId, "projMat");
 
+	//LookAt function is to set the position and the direction of the camera.
 	mat4 viewMat = lookAt(vec3(0, 0, 3), vec3(0, 0, 0), vec3(0, 1, 0));
 	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, value_ptr(viewMat));
 
 	mat4 projMat = perspectiveFov(60.0f, 5.0f, 5.0f, 1.0f, 10.0f);
 	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE, value_ptr(projMat));
 
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0, 0, 1, 1);
 	glEnable(GL_DEPTH_TEST); //To enable depth buffer to test the values of z-indices to keep them updated.
 
 	return 0;
@@ -167,7 +175,7 @@ void Update()
 
 void Render()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //To clear the color buffer and the depth buffer after rendering.
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //To clear the color buffer and the depth buffer before rendering.
 	//glUseProgram(baseShaderProgramId);
 	//BindSphere();
 
@@ -181,10 +189,10 @@ void Render()
 
 int main()
 {
-	//Give size to depth buffer.
+	//Create a context Setting to update the window of sfml.
 	sf::ContextSettings context;
 	context.depthBits = 24; //give the depthbits a size of 24.
-	sf::Window window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Close, context); //give the window the context updated.
+	sf::Window window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!", sf::Style::Close, context); //give the window the updated context.
 
 	if (Init()) return 1;
 
